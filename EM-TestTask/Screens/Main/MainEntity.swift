@@ -11,7 +11,7 @@ struct Task: Codable {
     let id: Int64
     let todo: String
     let description: String?
-    let completed: Bool
+    var completed: Bool
     let userId: Int64
     let createdAt: Date?
 }

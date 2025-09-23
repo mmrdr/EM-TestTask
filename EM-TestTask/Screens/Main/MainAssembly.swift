@@ -10,7 +10,9 @@ import UIKit
 enum MainAssembly {
     static func build() -> UIViewController {
         let view = MainViewController()
-        let interactor = MainInteractor()
+        let coreData = CoreDataManager()
+        let networkServoce = NetworkService()
+        let interactor = MainInteractor(coreData: coreData, networkService: networkServoce)
         let router = MainRouter(view: view)
         let presenter = MainPresenter(view: view, interactor: interactor, router: router)
         view.presenter = presenter

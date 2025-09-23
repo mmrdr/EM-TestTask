@@ -57,19 +57,19 @@ final class MainPresenter: MainPresenterProtocol {
     }
     
     func createNewTaskPressed() {
-        <#code#>
+        //
     }
     
     func updateTaskPressed(_ task: Task) {
-        <#code#>
+        //
     }
     
     func shareTaskPressed(_ task: Task) {
-        <#code#>
+        //
     }
     
     func deleteTaskPressed(_ task: Task) {
-        <#code#>
+        //
     }
     
     private func mapFromCoreData(_ tasks: [TaskEntity]) -> [Task] {
@@ -124,5 +124,6 @@ final class MainPresenter: MainPresenterProtocol {
         case .invalidURL:
             break
         }
+        return "Something went wrong"
     }
 }
