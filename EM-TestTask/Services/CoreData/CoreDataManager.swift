@@ -19,7 +19,7 @@ final class CoreDataManager: CoreDataProtocol {
     func fetchTask(_ taskId: Int64) -> TaskEntity? {
         let c = CoreDataStack.shared.viewContext(for: Models.task.rawValue)
         let r: NSFetchRequest<TaskEntity> = TaskEntity.fetchRequest()
-        r.predicate = NSPredicate(format: "id == %@", taskId as CVarArg)
+        r.predicate = NSPredicate(format: "id == %@", NSNumber(value: taskId))
         r.fetchLimit = 1
         return try? c.fetch(r).first
     }

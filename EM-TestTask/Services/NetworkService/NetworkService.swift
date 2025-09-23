@@ -62,7 +62,24 @@ final class NetworkService: NetworkServiceProtocol {
                 return
             }
             do {
-                let decoded = try JSONDecoder().decode(T.self, from: data)
+                let decoder = JSONDecoder()
+                let iso = ISO8601DateFormatter()
+                iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds] // важно для .649
+                decoder.dateDecodingStrategy = .custom { d in
+                    let c = try d.singleValueContainer()
+                    let s = try c.decode(String.self)
+                    if let date = iso.date(from: s) {
+                        return date
+                    }
+                    // fallback: без долей секунды
+                    let isoNoFrac = ISO8601DateFormatter()
+                    isoNoFrac.formatOptions = [.withInternetDateTime]
+                    if let date = isoNoFrac.date(from: s) {
+                        return date
+                    }
+                    throw DecodingError.dataCorruptedError(in: c, debugDescription: "Invalid ISO8601 date: \(s)")
+                }
+                let decoded = try decoder.decode(T.self, from: data)
                 completion(.success(decoded))
             } catch {
                 completion(.failure(NetworkError.decodingError))

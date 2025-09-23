@@ -5,7 +5,7 @@
 //  Created by Кирилл Исаев on 23.09.2025.
 //
 
-import Foundation
+import UIKit
 
 final class MainPresenter: MainPresenterProtocol {
     weak var view: MainViewProtocol?
@@ -23,6 +23,9 @@ final class MainPresenter: MainPresenterProtocol {
     
     func viewLoaded() {
         let tasks = interactor.loadAllTasksFromCoreData()
+        for task in tasks {
+            print("\(task.id)/n")
+        }
         if !tasks.isEmpty {
             let mappedTasks = mapFromCoreData(tasks)
             view?.showTasks(mappedTasks)
@@ -44,16 +47,7 @@ final class MainPresenter: MainPresenterProtocol {
     }
     
     func taskCompletedStatusChanged(_ task: Task) {
-        interactor.updateTask(task) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success(let response):
-                break
-            case .failure(let error):
-                let mappedError = mapError(error)
-                self.view?.showError(mappedError)
-            }
-        }
+        interactor.updateTask(task)
     }
     
     func createNewTaskPressed() {
@@ -69,7 +63,15 @@ final class MainPresenter: MainPresenterProtocol {
     }
     
     func deleteTaskPressed(_ task: Task) {
-        //
+        interactor.deleteTask(task.id) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(_): break
+            case .failure(let error):
+                let mappedError = self.mapError(error)
+                view?.showError(mappedError)
+            }
+        }
     }
     
     private func mapFromCoreData(_ tasks: [TaskEntity]) -> [Task] {

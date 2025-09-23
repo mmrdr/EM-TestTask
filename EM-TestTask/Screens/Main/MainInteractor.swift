@@ -24,7 +24,7 @@ final class MainInteractor: MainInteractorProtocol {
     func loadAllTasks(_ userId: Int64, completion: @escaping (Result<Tasks, any Error>) -> Void) {
         networkService
             .request(
-                endpoint: Endpoints.getByUser.rawValue + "\(userId)",
+                endpoint: Endpoints.getByUser.rawValue + "/\(userId)",
                 method: .get,
                 queryItems: nil,
                 body: nil as EmptyBody?,
@@ -75,40 +75,14 @@ final class MainInteractor: MainInteractorProtocol {
         }
     }
     
-    func updateTask(_ task: Task, completion: @escaping (Result<Task, any Error>) -> Void) {
-        networkService
-            .request(
-                endpoint: "\(task.id)",
-                method: .put,
-                queryItems: nil,
-                body: task as Task,
-                headers: nil,
-            ) { [weak self] (result: Result<TaskDTO, Error>) in
-                DispatchQueue.main.async {
-                    guard let self = self else { return }
-                    switch result {
-                    case .success(let response):
-                        let task = Task(
-                            id: response.id,
-                            todo: response.todo,
-                            description: task.description,
-                            completed: response.completed,
-                            userId: response.userId,
-                            createdAt: task.createdAt
-                        )
-                        self.coreData.updateTask(task)
-                        completion(.success(task))
-                    case .failure(let error):
-                        completion(.failure(error))
-                    }
-                }
-            }
+    func updateTask(_ task: Task) {
+        coreData.updateTask(task)
     }
     
     func deleteTask(_ taskId: Int64, completion: @escaping (Result<Void, any Error>) -> Void) {
         networkService
             .request(
-                endpoint: "\(taskId)",
+                endpoint: "/\(taskId)",
                 method: .delete,
                 queryItems: nil,
                 body: nil as EmptyBody?,
@@ -117,7 +91,8 @@ final class MainInteractor: MainInteractorProtocol {
                 DispatchQueue.main.async {
                     guard let self = self else { return }
                     switch result {
-                    case .success(let response):
+                    case .success(_):
+                        self.coreData.deleteTask(taskId)
                         completion(.success(()))
                     case .failure(let error):
                         completion(.failure(error))

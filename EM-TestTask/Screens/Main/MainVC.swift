@@ -9,10 +9,11 @@ import UIKit
 
 final class MainViewController: UIViewController, MainViewProtocol  {
     var presenter: MainPresenterProtocol!
-    var tasks: [Task] = [
-        Task(id: 1, todo: "Do math and swift", description: "No description provided", completed: false, userId: 1, createdAt: Date.now),
-        Task(id: 2, todo: "GYM", description: "Do pull ups and bench press. Maybe run after this", completed: false, userId: 1, createdAt: Date.now)
-    ]
+    var tasks: [Task] = [] {
+        didSet {
+            taskCountLabel.text = "\(tasks.count) Задач"
+        }
+    }
     
     private let searchController: UISearchController = UISearchController()
     private let tasksTableView: UITableView = UITableView(frame: .zero, style: .insetGrouped)
@@ -22,6 +23,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        presenter.viewLoaded()
         configureUI()
     }
     
@@ -36,6 +38,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     
     func showTasks(_ tasks: [Task]) {
         self.tasks = tasks
+        tasksTableView.reloadData()
     }
     
     func startLoadingAnimation() {
@@ -153,6 +156,7 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tasks[indexPath.row].completed.toggle()
+        presenter.taskCompletedStatusChanged(tasks[indexPath.row])
         tableView.reloadRows(at: [indexPath], with: .automatic)
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -169,6 +173,8 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
             }
             
             let deleteAction = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+                self?.tasks.remove(at: indexPath.row)
+                self?.tasksTableView.deleteRows(at: [indexPath], with: .automatic)
                 self?.presenter.deleteTaskPressed(task)
             }
             
