@@ -8,7 +8,12 @@
 import Foundation
 
 protocol MainPresenterProtocol {
-    
+    func viewLoaded()
+    func createNewTaskPressed()
+    func taskCompletedStatusChanged(_ task: Task)
+    func updateTaskPressed(_ task: Task)
+    func shareTaskPressed(_ task: Task)
+    func deleteTaskPressed(_ task: Task)
 }
 
 protocol MainInteractorProtocol {
@@ -20,7 +25,10 @@ protocol MainInteractorProtocol {
 }
 
 protocol MainViewProtocol: AnyObject {
-    
+    func showError(_ error: String)
+    func showTasks(_ tasks: [Task])
+    func startLoadingAnimation()
+    func stopLoadingAnimation()
 }
 
 protocol MainRouterProtocol {
