@@ -128,9 +128,46 @@ final class MainInteractor: MainInteractorProtocol {
         coreData.createTask(task)
     }
     
+    /// OptimisticUI
+    /// - думаю лучше, чтобы пользователь в приложении видел невалидный статус "completed",
+    /// чем при получении ошибок видел как у нее меняется статус обратно(т е не делаю отката состояния как при создании новой таски или удаления таски)
+    /// - после перезахода в приложение он увидит, что статус не смог измениться,
+    /// да, повозмущается, но не так сильно как во флоу с изменением состояния обратно, это вообще тяжело воспринимается
+    /// хочу заметить, что данные в CoreData остаются синхронизированны с сервером
+    
     func updateTask(_ task: Task) {
         coreData.updateTask(task)
+        let request = TaskChangeRequest(completed: task.completed)
+        networkService
+            .request(
+                endpoint: "/\(task.id)",
+                method: .put,
+                queryItems: nil,
+                body: request as TaskChangeRequest,
+                headers: nil
+            ) { [weak self] (result: Result<DeletedTask, Error>) in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(_): break
+                    case .failure(_):
+                        let newTask = Task(
+                            id: task.id,
+                            todo: task.todo,
+                            description: task.description,
+                            completed: !task.completed,
+                            userId: task.userId,
+                            createdAt: task.createdAt
+                        )
+                        self.coreData.updateTask(newTask)
+                    }
+                }
+            }
     }
+    
+    /// OptimisticUI
+    /// - тут то же самое, если удалит - то с экрана пропадет, даже попадет в список удаленных,
+    /// но если ошибка на сервере - при получении ивента появится на главном экране и пропадет с экрана удаленных
     
     func deleteTask(_ task: Task, completion: @escaping (Result<Void, any Error>) -> Void) {
         coreData.deleteTask(task.id)
@@ -142,12 +179,17 @@ final class MainInteractor: MainInteractorProtocol {
                 queryItems: nil,
                 body: nil as EmptyBody?,
                 headers: nil
-            ) { (result: Result<DeletedTask, Error>) in
+            ) { [weak self] (result: Result<DeletedTask, Error>) in
                 DispatchQueue.main.async {
+                    guard let self = self else { return }
                     switch result {
                     case .success(_):
                         completion(.success(()))
                     case .failure(let error):
+                        self.coreData.createTask(task)
+                        NotificationCenter.default.post(name: .tasksCreatedEvent, object: nil, userInfo: ["task": task])
+                        self.coreData.deleteTrashTask(task.id)
+                        NotificationCenter.default.post(name: .trashTaskDeletedEvent, object: nil, userInfo: ["task": task])
                         completion(.failure(error))
                     }
                 }

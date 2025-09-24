@@ -30,6 +30,10 @@ struct Tasks: Codable {
     let limit: Int64
 }
 
+struct TaskChangeRequest: Codable {
+    let completed: Bool
+}
+
 struct DeletedTask: Codable {
     let id: Int64
     let todo: String

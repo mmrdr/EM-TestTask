@@ -100,10 +100,8 @@ final class MainPresenter: MainPresenterProtocol {
             switch result {
             case .success(_): break
             case .failure(let error):
-                if task.id != 255 {
-                    let mappedError = self.mapError(error)
-                    view?.showError(mappedError)
-                }
+                let mappedError = self.mapError(error)
+                view?.showError(mappedError)
             }
         }
     }
