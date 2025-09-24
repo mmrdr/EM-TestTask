@@ -115,7 +115,7 @@ final class MainInteractor: MainInteractorProtocol {
                             userId: response.userId,
                             createdAt: task.createdAt
                         )
-                        self.coreData.updateTask(newTask)
+                        self.coreData.createTask(newTask)
                         completion(.success(response))
                     case .failure(let error):
                         completion(.failure(error))

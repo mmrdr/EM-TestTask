@@ -100,8 +100,13 @@ final class MainPresenter: MainPresenterProtocol {
             switch result {
             case .success(_): break
             case .failure(let error):
-                let mappedError = self.mapError(error)
-                view?.showError(mappedError)
+                if task.id <= 255 {
+                    let mappedError = self.mapError(error)
+                    view?.handleError(task.id)
+                    view?.showError(mappedError)
+                } else {
+                    view?.showError("Это не моя проблема, dummyjson не умеет удалять созданные пользователем таски(логично, бэк же не создает у себя новую таску")
+                }
             }
         }
     }

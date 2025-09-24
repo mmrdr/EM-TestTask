@@ -15,6 +15,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         }
     }
     var filteredTasks: [Task] = []
+    var failedTaskIDs = Set<Int64>() // для хранения зафейленных айди, решение проблемы с переиспользованием ячеек
     
     private let searchController: UISearchController = UISearchController(searchResultsController: nil)
     private let tasksTableView: UITableView = UITableView(frame: .zero, style: .insetGrouped)
@@ -108,6 +109,8 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         if let index = tasks.firstIndex(where: {$0.id == taskId}) {
             if let cell = tasksTableView.cellForRow(at: IndexPath(row: index, section: 0)) as? TaskCell {
                 cell.showError()
+                failedTaskIDs.insert(taskId)
+                tasksTableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .none)
             }
         }
     }
@@ -271,7 +274,7 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
             return UITableViewCell()
         }
         let item = tasks[indexPath.row]
-        cell.configure(item)
+        cell.configure(item, failedTaskIDs)
         cell.failButtonTapped = {
             let alertController = UIAlertController(title: "Что делаем с таской?", message: nil, preferredStyle: .alert)
             let tryAgainAction = UIAlertAction(title: "Сохранить заново", style: .default) { [weak self] _ in
