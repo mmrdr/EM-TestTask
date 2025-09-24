@@ -61,9 +61,6 @@ jobs:
           cat 'fastlane/test_output/report.junit'
           
       - name: Publish test results
-        uses: dorny/test-reporter@v2
-        if: success() || failure()
+        uses: ctrf-io/github-test-reporter@v1
         with:
-          name: Test Results
-          path: 'fastlane/test_output/*.junit'
-          reporter: java-junit
+          path: 'fastlane/test_output/report.junit'
