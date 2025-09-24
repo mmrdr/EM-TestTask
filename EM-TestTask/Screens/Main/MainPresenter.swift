@@ -19,13 +19,16 @@ final class MainPresenter: MainPresenterProtocol {
         self.view = view
         self.interactor = interactor
         self.router = router
+        registerNotifications()
     }
     
     func viewLoaded() {
+        view?.startLoadingAnimation()
         let tasks = interactor.loadAllTasksFromCoreData()
         for task in tasks {
             print("\(task.id)/n")
         }
+        view?.stopLoadingAnimation()
         if !tasks.isEmpty {
             let mappedTasks = mapFromCoreData(tasks)
             let sorted = mappedTasks.sorted { task1, task2 in
@@ -81,6 +84,12 @@ final class MainPresenter: MainPresenterProtocol {
         router.routeToTrashHistoryScreen()
     }
     
+    private func registerNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(handleStartAnimation), name: .startAnimationEvent, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleStopAnimation), name: .stopAnimationEvent, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleError), name: .showErrorEvent, object: nil)
+    }
+    
     private func mapFromCoreData(_ tasks: [TaskEntity]) -> [Task] {
         var mappedTasks: [Task] = []
         for task in tasks {
@@ -134,5 +143,44 @@ final class MainPresenter: MainPresenterProtocol {
             break
         }
         return "Something went wrong"
+    }
+    
+    @objc private func handleTaskIdUpdated(_ notification: Notification) {
+        if let userInfo = notification.userInfo,
+           let task = userInfo["task"] as? Task {
+            interactor.updateTask(task)
+        }
+    }
+    
+    @objc private func handleStartAnimation(_ notification: Notification) {
+        if let userInfo = notification.userInfo,
+           let taskId = userInfo["task"] as? Int64 {
+            view?.handleStartAnimation(taskId)
+        }
+    }
+    
+    @objc private func handleStopAnimation(_ notification: Notification) {
+        if let userInfo = notification.userInfo,
+           let taskId = userInfo["task"] as? Int64 {
+            view?.handleStopAnimation(taskId)
+        }
+    }
+    
+    @objc private func handleError(_ notification: Notification) {
+        if let userInfo = notification.userInfo,
+           let taskId = userInfo["task"] as? Int64,
+           let error = userInfo["error"] as? Error
+        {
+            let mappedError = mapError(error)
+            view?.showError(mappedError)
+            view?.handleError(taskId)
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: .startAnimationEvent, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .stopAnimationEvent, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .showErrorEvent, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .taskIdUpdatedEvent, object: nil)
     }
 }

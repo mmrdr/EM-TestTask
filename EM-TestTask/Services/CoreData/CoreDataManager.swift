@@ -79,7 +79,7 @@ final class CoreDataManager: CoreDataProtocol {
             debugPrint("Task with id: \(task.id) not found in storage")
             return
         }
-        
+        updatedTask.id = task.id
         updatedTask.todo = task.todo
         updatedTask.todoDescription = updatedTask.todoDescription
         updatedTask.completed = task.completed

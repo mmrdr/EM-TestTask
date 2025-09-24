@@ -14,7 +14,14 @@ final class TaskCell: UITableViewCell {
     private let titleLabel: UILabel = UILabel()
     private let descriptionLabel: UILabel = UILabel()
     private let dateLabel: UILabel = UILabel()
+    private let loader: LoadingRingsView = LoadingRingsView()
+    private let failButton: UIButton = UIButton(type: .system)
     private let taskStackView: UIStackView = UIStackView()
+    var isActive: Bool {
+        get {
+            failButton.isHidden
+        }
+    }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -32,16 +39,31 @@ final class TaskCell: UITableViewCell {
         dateLabel.text = formatDate(task.createdAt ?? Date.now)
         updateCheckbox(task.completed, animated)
         accessoryType = .none
-        selectionStyle = .default
+        selectionStyle = .none
     }
     
     func configureCell() {
         contentView.backgroundColor = Colors.surfacePrimary
         configureCheckImageView()
+        configureLoader()
+        configureFailButton()
         configureTaskStackView()
         configureTitleLabel()
         configureDescriptionLabel()
         configureDateLabel()
+    }
+    
+    func startAnimation() {
+        loader.start()
+        failButton.isHidden = true
+    }
+    
+    func stopAnimation() {
+        loader.stop()
+    }
+    
+    func showError() {
+        failButton.isHidden = false
     }
     
     private func configureCheckImageView() {
@@ -55,6 +77,27 @@ final class TaskCell: UITableViewCell {
         checkImageView.pinTop(contentView.topAnchor, 12)
     }
     
+    private func configureLoader() {
+        contentView.addSubview(loader)
+        loader.setHeight(24)
+        loader.setWidth(24)
+        loader.pinRight(contentView.trailingAnchor, 0)
+        loader.pinCenterY(contentView)
+    }
+    
+    private func configureFailButton() {
+        contentView.addSubview(failButton)
+        failButton.setImage(UIImage(systemName: "exclamationmark.circle"), for: .normal)
+        failButton.tintColor = .red
+        failButton.setTitleColor(.red, for: .normal)
+        failButton.setHeight(24)
+        failButton.setWidth(24)
+        failButton.pinRight(contentView.trailingAnchor, 0)
+        failButton.pinCenterY(contentView)
+        failButton.isHidden = true
+        failButton.addTarget(self, action: #selector(failButtonPressed), for: .touchUpInside)
+    }
+    
     private func configureTaskStackView() {
         contentView.addSubview(taskStackView)
         taskStackView.spacing = 8
@@ -64,7 +107,7 @@ final class TaskCell: UITableViewCell {
         taskStackView.pinTop(contentView.topAnchor, 12)
         taskStackView.pinBottom(contentView.bottomAnchor, 12)
         taskStackView.pinLeft(checkImageView.trailingAnchor, 8)
-        taskStackView.pinRight(contentView.trailingAnchor, 16)
+        taskStackView.pinRight(loader.leadingAnchor, 8)
         taskStackView.addArrangedSubview(titleLabel)
         taskStackView.addArrangedSubview(descriptionLabel)
         taskStackView.addArrangedSubview(dateLabel)
@@ -115,5 +158,9 @@ final class TaskCell: UITableViewCell {
             self.descriptionLabel.textColor = toDesc
             self.dateLabel.textColor = Colors.textSecondary
         }
+    }
+    
+    @objc private func failButtonPressed() {
+        print("PRESSED")
     }
 }

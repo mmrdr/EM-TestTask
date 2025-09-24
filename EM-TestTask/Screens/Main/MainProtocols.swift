@@ -29,6 +29,9 @@ protocol MainViewProtocol: AnyObject {
     func showTasks(_ tasks: [Task])
     func startLoadingAnimation()
     func stopLoadingAnimation()
+    func handleStartAnimation(_ taskId: Int64)
+    func handleStopAnimation(_ taskId: Int64)
+    func handleError(_ taskId: Int64)
 }
 
 protocol MainRouterProtocol {

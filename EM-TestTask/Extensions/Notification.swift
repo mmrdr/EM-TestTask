@@ -12,4 +12,8 @@ extension Notification.Name {
     static let taskUpdatedEvent = Notification.Name("TaskUpdatedEvent")
     static let trashTaskCreatedEvent = Notification.Name("TrashTaskCreatedEvent")
     static let trashTaskRestoredEvent = Notification.Name("TrashTaskRestoredEvent")
+    static let startAnimationEvent = Notification.Name("StartAnimationEvent")
+    static let stopAnimationEvent = Notification.Name("StopAnimationEvent")
+    static let showErrorEvent = Notification.Name("ShowErrorEvent")
+    static let taskIdUpdatedEvent = Notification.Name("taskIdUpdatedEvent")
 }
