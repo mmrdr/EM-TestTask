@@ -14,8 +14,9 @@ final class MainViewController: UIViewController, MainViewProtocol  {
             taskCountLabel.text = "\(tasks.count) Задач"
         }
     }
+    var filteredTasks: [Task] = []
     
-    private let searchController: UISearchController = UISearchController()
+    private let searchController: UISearchController = UISearchController(searchResultsController: nil)
     private let tasksTableView: UITableView = UITableView(frame: .zero, style: .insetGrouped)
     private let bottomBar = UIToolbar()
     private let taskCountLabel = UILabel()
@@ -132,7 +133,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     }
     
     private func configureSearchController() {
-        searchController.delegate = self
+        searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         navigationItem.searchController = searchController
         searchController.searchBar.autocapitalizationType = .none
@@ -140,6 +141,8 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         searchController.searchBar.searchTextField.textColor = Colors.textPrimary
         definesPresentationContext = true
         navigationItem.hidesSearchBarWhenScrolling = false
+        
+        filteredTasks = tasks
     }
     
     private func configureTasksTableView() {
@@ -240,7 +243,7 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return tasks.count
+        return searchController.isActive ? filteredTasks.count : tasks.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -305,6 +308,21 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
     }
 }
 
-extension MainViewController: UISearchControllerDelegate {
-    
+extension MainViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        let query = (searchController.searchBar.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !query.isEmpty else {
+            filteredTasks = tasks
+            tasksTableView.reloadData()
+            return
+        }
+
+        let lower = query.lowercased()
+        filteredTasks = tasks.filter { task in
+            task.todo.lowercased().contains(lower)
+        }
+
+        tasksTableView.reloadData()
+    }
 }
