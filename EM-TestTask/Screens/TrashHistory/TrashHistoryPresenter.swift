@@ -19,15 +19,16 @@ final class TrashHistoryPresenter: TrashHistoryPresenterProtocol  {
     }
     
     func viewLoaded() {
-        view?.showDeletedTasks([])
+        let tasks = interactor.loadDeletedTasks()
+        view?.showDeletedTasks(tasks)
     }
     
     func restorePressed(_ task: Task) {
-        //
+        interactor.restoreTask(task)
     }
     
     func deletePressed(_ task: Task) {
-        //
+        interactor.deleteTask(task)
     }
     
     func backButtonPressed() {

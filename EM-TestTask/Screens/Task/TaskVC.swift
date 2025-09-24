@@ -41,7 +41,7 @@ final class TaskViewController: UIViewController {
     func showTask(_ task: Task) {
         todoTextField.text = task.todo
         descriptionTextField.text = task.description
-        dateLabel.text = "Deadline: \(String(describing: task.createdAt?.description))"
+        dateLabel.text = "Created at: \(String(describing: task.createdAt?.description))"
     }
     
     private func configureUI() {
@@ -70,7 +70,8 @@ final class TaskViewController: UIViewController {
     
     private func configureDateLabel() {
         view.addSubview(dateLabel)
-        dateLabel.text = "Deadline: \(Date.now.description)"
+        let now = Date()
+        dateLabel.text = "Created at: \(Calendar.current.date(byAdding: .hour, value: 3, to: now) ?? Date())"
         dateLabel.font = Fonts.dateFont
         dateLabel.textColor = Colors.textSecondary
         

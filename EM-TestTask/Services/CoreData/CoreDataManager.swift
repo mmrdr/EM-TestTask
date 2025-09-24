@@ -83,7 +83,7 @@ final class CoreDataManager: CoreDataProtocol {
         updatedTask.todo = task.todo
         updatedTask.todoDescription = task.description
         updatedTask.completed = task.completed
-        debugPrint("updated: \(updatedTask.id)\n\(updatedTask.todo)/n\(updatedTask.todoDescription)")
+        debugPrint("updated: \(updatedTask.id)\n\(String(describing: updatedTask.todo))/n\(String(describing: updatedTask.todoDescription))")
         CoreDataStack.shared.saveContext(for: Models.task.rawValue)
     }
     
@@ -107,6 +107,17 @@ final class CoreDataManager: CoreDataProtocol {
             }
         } catch let error as NSError {
             print("Could not delete. \(error), \(error.userInfo)")
+        }
+    }
+    
+    func fetchAllTrashTasks() -> [DeletedTaskEntity] {
+        let c = CoreDataStack.shared.viewContext(for: Models.trash.rawValue)
+        let r: NSFetchRequest<DeletedTaskEntity> = DeletedTaskEntity.fetchRequest()
+        do {
+            return try c.fetch(r)
+        } catch {
+            debugPrint("Fetching trash tasks failed or empty")
+            return []
         }
     }
     
