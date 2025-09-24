@@ -63,4 +63,4 @@ jobs:
       - name: Publish test results
         uses: ctrf-io/github-test-reporter@v1
         with:
-          path: 'fastlane/test_output/report.junit'
+          report-path: 'fastlane/test_output/report.junit'
