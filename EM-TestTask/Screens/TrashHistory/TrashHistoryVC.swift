@@ -14,11 +14,13 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
             taskCountLabel.text = "\(tasks.count) Задач"
         }
     }
+    var filteredTasks: [Task] = []
     var tasksSections: [TaskSection] = []
     
     private let trashTableView: UITableView = UITableView(frame: .zero, style: .insetGrouped)
     private let bottomBar = UIToolbar()
     private let taskCountLabel = UILabel()
+    private let searchController: UISearchController = UISearchController(searchResultsController: nil)
     
     private lazy var monthFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -38,7 +40,6 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
         super.viewDidLoad()
         view.backgroundColor = Colors.surfacePrimary
         presenter.viewLoaded()
-        register()
         configureUI()
     }
     
@@ -48,13 +49,34 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
         trashTableView.reloadData()
     }
     
-    private func register() {
-        NotificationCenter.default.addObserver(self, selector: #selector(handleTrashTaskCreatedEvent), name: .trashTaskCreatedEvent, object: nil)
+    func removeTaskFromScreen(_ task: Task) {
+        guard let section = tasksSections.firstIndex(where: { $0.items.contains(where: { $0.id == task.id }) }) else { return }
+        guard let row = tasksSections[section].items.firstIndex(where: { $0.id == task.id }) else { return }
+        let indexPath = IndexPath(row: row, section: section)
+        
+        tasks.remove(at: indexPath.row)
+        tasksSections[indexPath.section].items.remove(at: indexPath.row)
+        trashTableView.deleteRows(at: [indexPath], with: .automatic)
+        
+        let items = tasksSections[indexPath.section].items
+        if items.isEmpty {
+            tasksSections.remove(at: indexPath.section)
+            trashTableView.deleteSections(IndexSet(integer: indexPath.section), with: .automatic)
+        }
     }
+    
+    func handleTrashTaskCreatedEvent(_ task: Task) {
+        debugPrint("Received deleted task: \(task.id)\n\(task.todo)/\(String(describing: task.description))")
+        self.tasks.append(task)
+        self.tasksSections = buildSections(from: self.tasks)
+        trashTableView.reloadData()
+    }
+    
     
     private func configureUI() {
         configureTitle()
         configureTrashTableView()
+        configureSearchController()
         configureBottomBar()
         configureTaskCountLabel()
     }
@@ -73,6 +95,19 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
         trashTableView.register(TrashCell.self, forCellReuseIdentifier: "TrashCell")
         trashTableView.register(SectionHeaderView.self, forHeaderFooterViewReuseIdentifier: "SectionHeaderView")
         trashTableView.frame = view.bounds
+    }
+    
+    private func configureSearchController() {
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        navigationItem.searchController = searchController
+        searchController.searchBar.autocapitalizationType = .none
+        searchController.searchBar.autocorrectionType = .no
+        searchController.searchBar.searchTextField.textColor = Colors.textPrimary
+        definesPresentationContext = true
+        navigationItem.hidesSearchBarWhenScrolling = false
+        
+        filteredTasks = tasks
     }
     
     private func configureBottomBar() {
@@ -127,16 +162,6 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
             .sorted { $0.items.first?.createdAt ?? .distantPast > $1.items.first?.createdAt ?? .distantPast }
         return sections
     }
-    
-    @objc func handleTrashTaskCreatedEvent(_ notification: Notification) {
-        if let userInfo = notification.userInfo,
-           let task = userInfo["task"] as? Task {
-            debugPrint("Received deleted task: \(task.id)\n\(task.todo)/\(String(describing: task.description))")
-            self.tasks.append(task)
-            self.tasksSections = buildSections(from: self.tasks)
-            trashTableView.reloadData()
-        }
-    }
 }
 
 extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource {
@@ -145,13 +170,19 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return tasksSections[section].items.count
+        return searchController.isActive ? filteredTasks.count : tasks.count
     }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: "SectionHeaderView") as! SectionHeaderView
-        header.label.text = tasksSections[section].header
-        return header
+        guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: "SectionHeaderView") as? SectionHeaderView else {
+            return UIView()
+        }
+        if !searchController.isActive {
+            header.label.text = tasksSections[section].header
+            return header
+        } else {
+            return nil
+        }
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -175,7 +206,9 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
     
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         let task = tasks[indexPath.row]
-        let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+        let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: {
+            return TaskAssembly.build(task)
+        }, actionProvider: { _ in
             let restoreAction = UIAction(title: "Восстановить", image: UIImage(systemName: "pencil")) { [weak self] _ in
                 self?.tasks.remove(at: indexPath.row)
                 self?.tasksSections[indexPath.section].items.remove(at: indexPath.row)
@@ -205,7 +238,26 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
             }
             
             return UIMenu(title: "", children: [restoreAction, deleteAction])
-        }
+        })
         return configuration
+    }
+}
+
+extension TrashHistoryViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        let query = (searchController.searchBar.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !query.isEmpty else {
+            filteredTasks = tasks
+            trashTableView.reloadData()
+            return
+        }
+
+        let lower = query.lowercased()
+        filteredTasks = tasks.filter { task in
+            task.todo.lowercased().contains(lower)
+        }
+
+        trashTableView.reloadData()
     }
 }

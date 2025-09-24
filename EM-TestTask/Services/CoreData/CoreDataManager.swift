@@ -65,6 +65,10 @@ final class CoreDataManager: CoreDataProtocol {
         CoreDataStack.shared.saveContext(for: Models.task.rawValue)
     }
     
+    func getStorageCount() -> Int {
+        return (fetchAllTasks().count)
+    }
+    
     func getNewTaskId() -> Int64 {
         let tasks = fetchAllTasks()
         var newId: Int64 = 1

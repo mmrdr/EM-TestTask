@@ -22,6 +22,8 @@ protocol TrashHistoryInteractorProtocol {
 
 protocol TrashHistoryViewProtocol: AnyObject {
     func showDeletedTasks(_ tasks: [Task])
+    func removeTaskFromScreen(_ task: Task)
+    func handleTrashTaskCreatedEvent(_ task: Task)
 }
 
 protocol TrashHistoryRouterProtocol {

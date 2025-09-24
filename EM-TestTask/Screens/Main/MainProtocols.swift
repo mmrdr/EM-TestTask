@@ -16,17 +16,24 @@ protocol MainPresenterProtocol {
     func shareTaskPressed(_ task: Task)
     func deleteTaskPressed(_ task: Task)
     func openTrashHistory()
+    
+    // пагинация
+    func reachedEnd()    
 }
 
 protocol MainInteractorProtocol {
     func loadAllTasksFromCoreData() -> [TaskEntity]
-    func loadAllTasks(_ userId: Int64, completion: @escaping (Result<Tasks, Error>) -> Void)
     func createTask(_ task: Task, completion: @escaping (Result<TaskDTO, Error>) -> Void)
     func updateTask(_ task: Task)
     func deleteTask(_ task: Task, completion: @escaping (Result<Void, Error>) -> Void)
     
     func createTaskInCoreData(_ task: Task)
+    
+    // пагинация
+    func loadFirstPage(completion: @escaping (Result<Tasks, any Error>) -> Void)
+    func loadNextPage(completion: @escaping (Result<Tasks, any Error>) -> Void)
 }
+
 
 protocol MainViewProtocol: AnyObject {
     func showError(_ error: String)
@@ -37,6 +44,9 @@ protocol MainViewProtocol: AnyObject {
     func handleStopAnimation(_ taskId: Int64)
     func handleError(_ taskId: Int64)
     func updateTaskId(_ task: Task)
+    
+    // пагинация
+    func appendTasks(_ newTasks: [Task])
 }
 
 protocol MainRouterProtocol {

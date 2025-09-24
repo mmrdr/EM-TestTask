@@ -30,15 +30,38 @@ final class TaskCell: UITableViewCell {
         configureCell()
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        failButton.isHidden = true
+        loader.stop()
+        loader.isHidden = true
+        checkImageView.image = UIImage(systemName: "circle")
+        checkImageView.tintColor = Colors.checkPrimary
+        titleLabel.text = nil
+        descriptionLabel.text = nil
+        dateLabel.text = nil
+        titleLabel.textColor = Colors.textPrimary
+        descriptionLabel.textColor = Colors.textPrimary
+        dateLabel.textColor = Colors.textSecondary
+        accessoryType = .none
+        selectionStyle = .none
+    }
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     // MARK: - Configuration
-    func configure(_ task: Task, _ animated: Bool = false) {
+    func configure(_ task: Task, _ failedIDs: Set<Int64>, _ animated: Bool = false) {
         titleLabel.text = task.todo
         descriptionLabel.text = task.description
-        dateLabel.text = formatDate(task.createdAt ?? Date.now)
+        dateLabel.text = formatDate(task.createdAt ?? Date())
+
+        let hasError = failedIDs.contains(task.id)
+        failButton.isHidden = !hasError
+        loader.stop()
+        loader.isHidden = true
+
         updateCheckbox(task.completed, animated)
         accessoryType = .none
         selectionStyle = .none

@@ -34,7 +34,7 @@ final class MainPresenter: MainPresenterProtocol {
             view?.showTasks(sorted)
         } else {
             view?.startLoadingAnimation()
-            interactor.loadAllTasks(userId) { [weak self] result in
+            interactor.loadFirstPage() { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success(let response):
@@ -45,6 +45,21 @@ final class MainPresenter: MainPresenterProtocol {
                     let mappedError = mapError(error)
                     self.view?.showError(mappedError)
                 }
+            }
+        }
+    }
+    
+    func reachedEnd() {
+        interactor.loadNextPage() { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let response):
+                let tasks = self.mapFromDTO(response.todos)
+                self.view?.stopLoadingAnimation()
+                self.view?.appendTasks(tasks)
+            case .failure(let error):
+                let mappedError = mapError(error)
+                self.view?.showError(mappedError)
             }
         }
     }
@@ -85,9 +100,12 @@ final class MainPresenter: MainPresenterProtocol {
             switch result {
             case .success(_): break
             case .failure(let error):
-                if task.id != 255 {
+                if task.id <= 255 {
                     let mappedError = self.mapError(error)
+                    view?.handleError(task.id)
                     view?.showError(mappedError)
+                } else {
+                    view?.showError("Это не моя проблема, dummyjson не умеет удалять созданные пользователем таски(логично, бэк же не создает у себя новую таску")
                 }
             }
         }

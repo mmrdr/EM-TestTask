@@ -15,6 +15,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         }
     }
     var filteredTasks: [Task] = []
+    var failedTaskIDs = Set<Int64>() // для хранения зафейленных айди, решение проблемы с переиспользованием ячеек
     
     private let searchController: UISearchController = UISearchController(searchResultsController: nil)
     private let tasksTableView: UITableView = UITableView(frame: .zero, style: .insetGrouped)
@@ -60,6 +61,26 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         tasksTableView.reloadData()
     }
     
+    func appendTasks(_ newTasks: [Task]) {
+        guard !newTasks.isEmpty else { return }
+
+        let startIndex = tasks.count
+        let endIndex = startIndex + newTasks.count - 1
+        let indexPaths = (startIndex...endIndex).map { IndexPath(row: $0, section: 0) }
+
+        self.tasks.append(contentsOf: newTasks)
+
+        if #available(iOS 11.0, *) {
+            tasksTableView.performBatchUpdates({
+                tasksTableView.insertRows(at: indexPaths, with: .automatic)
+            }, completion: nil)
+        } else {
+            tasksTableView.beginUpdates()
+            tasksTableView.insertRows(at: indexPaths, with: .automatic)
+            tasksTableView.endUpdates()
+        }
+    }
+    
     func startLoadingAnimation() {
         loader.start()
     }
@@ -88,6 +109,8 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         if let index = tasks.firstIndex(where: {$0.id == taskId}) {
             if let cell = tasksTableView.cellForRow(at: IndexPath(row: index, section: 0)) as? TaskCell {
                 cell.showError()
+                failedTaskIDs.insert(taskId)
+                tasksTableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .none)
             }
         }
     }
@@ -251,7 +274,7 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
             return UITableViewCell()
         }
         let item = tasks[indexPath.row]
-        cell.configure(item)
+        cell.configure(item, failedTaskIDs)
         cell.failButtonTapped = {
             let alertController = UIAlertController(title: "Что делаем с таской?", message: nil, preferredStyle: .alert)
             let tryAgainAction = UIAlertAction(title: "Сохранить заново", style: .default) { [weak self] _ in
@@ -286,7 +309,10 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
         let task = tasks[indexPath.row]
         guard let cell = tasksTableView.cellForRow(at: indexPath) as? TaskCell else { return nil }
         if !cell.isActive { return nil }
-        let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+        let configuration = UIContextMenuConfiguration(identifier: indexPath as NSIndexPath,
+                                                       previewProvider: {
+            return TaskAssembly.build(task)
+        }, actionProvider: { _ in
             let editAction = UIAction(title: "Редактировать", image: UIImage(systemName: "pencil")) { [weak self] _ in
                 self?.presenter.updateTaskPressed(task)
             }
@@ -303,8 +329,23 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
             }
             
             return UIMenu(title: "", children: [editAction, shareAction, deleteAction])
-        }
+        })
         return configuration
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        let threshold = max(tasks.count - 5, 0)
+        if indexPath.row >= threshold {
+            presenter.reachedEnd()
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, willPerformPreviewActionForMenuWith configuration: UIContextMenuConfiguration, animator: any UIContextMenuInteractionCommitAnimating) {
+        guard let indexPath = configuration.identifier as? NSIndexPath else { return }
+        let task = self.tasks[indexPath.row]
+        animator.addCompletion { [weak self] in
+            self?.presenter.updateTaskPressed(task)
+        }
     }
 }
 

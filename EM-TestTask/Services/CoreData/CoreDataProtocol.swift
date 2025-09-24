@@ -16,6 +16,7 @@ protocol CoreDataProtocol {
     func createTask(_ task: Task)
     func updateTask(_ task: Task)
     
+    func getStorageCount() -> Int
     func getNewTaskId() -> Int64
     
     func deleteTask(_ taskId: Int64)
