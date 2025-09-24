@@ -306,7 +306,10 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
         let task = tasks[indexPath.row]
         guard let cell = tasksTableView.cellForRow(at: indexPath) as? TaskCell else { return nil }
         if !cell.isActive { return nil }
-        let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+        let configuration = UIContextMenuConfiguration(identifier: indexPath as NSIndexPath,
+                                                       previewProvider: {
+            return TaskAssembly.build(task)
+        }, actionProvider: { _ in
             let editAction = UIAction(title: "Редактировать", image: UIImage(systemName: "pencil")) { [weak self] _ in
                 self?.presenter.updateTaskPressed(task)
             }
@@ -323,7 +326,7 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
             }
             
             return UIMenu(title: "", children: [editAction, shareAction, deleteAction])
-        }
+        })
         return configuration
     }
     
@@ -331,6 +334,14 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
         let threshold = max(tasks.count - 5, 0)
         if indexPath.row >= threshold {
             presenter.reachedEnd()
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, willPerformPreviewActionForMenuWith configuration: UIContextMenuConfiguration, animator: any UIContextMenuInteractionCommitAnimating) {
+        guard let indexPath = configuration.identifier as? NSIndexPath else { return }
+        let task = self.tasks[indexPath.row]
+        animator.addCompletion { [weak self] in
+            self?.presenter.updateTaskPressed(task)
         }
     }
 }
