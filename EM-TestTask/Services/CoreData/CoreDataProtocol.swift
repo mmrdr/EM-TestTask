@@ -18,4 +18,8 @@ protocol CoreDataProtocol {
     func getNewTaskId() -> Int64
     
     func deleteTask(_ taskId: Int64)
+    
+    func fetchTrashTask(_ taskId: Int64) -> DeletedTaskEntity?
+    func createTrashTask(_ task: Task)
+    func deleteTrashTask(_ taskId: Int64)
 }
