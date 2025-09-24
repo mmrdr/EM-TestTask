@@ -61,6 +61,7 @@ final class TaskViewController: UIViewController {
         todoTextField.autocorrectionType = .no
         todoTextField.autocapitalizationType = .none
         todoTextField.textAlignment = .left
+        todoTextField.adjustsFontSizeToFitWidth = true
         todoTextField.setContentHuggingPriority(.defaultLow, for: .horizontal)
         todoTextField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         
