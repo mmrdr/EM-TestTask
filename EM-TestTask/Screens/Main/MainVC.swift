@@ -23,8 +23,14 @@ final class MainViewController: UIViewController, MainViewProtocol  {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        registerNotifications()
         presenter.viewLoaded()
         configureUI()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        configureTitle()
     }
     
     // MARK: - Protocol Methods
@@ -47,6 +53,11 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     
     func stopLoadingAnimation() {
         //
+    }
+    
+    private func registerNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(handleTasksCreatedEvent), name: .tasksCreatedEvent, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleTaskUpdatedEvent), name: .taskUpdatedEvent, object: nil)
     }
     
     // MARK: - UI
@@ -131,7 +142,36 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     }
     
     private func createTask() {
-        
+        presenter.createNewTaskPressed()
+    }
+    
+    private func updateTask(_ task: Task) {
+        if let index = tasks.firstIndex(where: {$0.id == task.id }) {
+            tasks[index] = task
+            tasksTableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
+            debugPrint("Updated task(id:\(task.id)) on: \(task.todo), \(String(describing: task.description))")
+        }
+    }
+    
+    @objc private func handleTasksCreatedEvent(_ notification: Notification) {
+        if let userInfo = notification.userInfo,
+           let task = userInfo["task"] as? Task {
+            debugPrint("Received task: \(task.id)\n\(task.todo)\n\(String(describing: task.description))")
+            tasks.insert(task, at: 0)
+            tasksTableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
+        }
+    }
+    
+    @objc private func handleTaskUpdatedEvent(_ notification: Notification) {
+        if let userInfo = notification.userInfo,
+           let task = userInfo["task"] as? Task {
+            updateTask(task)
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: .tasksCreatedEvent, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .taskUpdatedEvent, object: nil)
     }
 }
 

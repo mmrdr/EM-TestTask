@@ -15,20 +15,10 @@ final class TaskCell: UITableViewCell {
     private let descriptionLabel: UILabel = UILabel()
     private let dateLabel: UILabel = UILabel()
     private let taskStackView: UIStackView = UIStackView()
-    private let line: CAShapeLayer = CAShapeLayer()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureCell()
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        let y = titleLabel.bounds.midY
-        let path = UIBezierPath()
-        path.move(to: CGPoint(x: 0, y: y))
-        path.addLine(to: CGPoint(x: titleLabel.intrinsicContentSize.width, y: y))
-        line.path = path.cgPath
     }
     
     required init?(coder: NSCoder) {
@@ -52,7 +42,6 @@ final class TaskCell: UITableViewCell {
         configureTitleLabel()
         configureDescriptionLabel()
         configureDateLabel()
-        configureLine()
     }
     
     private func configureCheckImageView() {
@@ -98,15 +87,6 @@ final class TaskCell: UITableViewCell {
         dateLabel.textColor = Colors.textSecondary
     }
     
-    private func configureLine() {
-        line.fillColor = Colors.textSecondary.cgColor
-        line.strokeColor = Colors.textSecondary.cgColor
-        line.lineWidth = 1
-        line.lineCap = .round
-        line.strokeEnd = 0
-        titleLabel.layer.addSublayer(line)
-    }
-    
     private func formatDate(_ date: Date) -> String {
         let calendar = Calendar.current
         
@@ -134,17 +114,6 @@ final class TaskCell: UITableViewCell {
             self.titleLabel.textColor = toTitle
             self.descriptionLabel.textColor = toDesc
             self.dateLabel.textColor = Colors.textSecondary
-        }
-        if animated {
-            let anim = CABasicAnimation(keyPath: "strokeEnd")
-            anim.fromValue = completed ? 0 : 1
-            anim.toValue   = completed ? 1 : 0
-            anim.duration  = 0.28
-            anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            line.strokeEnd = completed ? 1 : 0
-            line.add(anim, forKey: "strike")
-        } else {
-            line.strokeEnd = completed ? 1 : 0
         }
     }
 }

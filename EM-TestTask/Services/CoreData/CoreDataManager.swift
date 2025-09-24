@@ -35,18 +35,42 @@ final class CoreDataManager: CoreDataProtocol {
         }
     }
     
-    func createTask(_ taskDTO: TaskDTO) {
+    /// надо вообще удалить эту хрень
+    func createTask(_ task: TaskDTO) {
         let c = CoreDataStack.shared.viewContext(for: Models.task.rawValue)
-        let task = TaskEntity(context: c)
+        let newTask = TaskEntity(context: c)
         
-        task.id = taskDTO.id
-        task.todo = taskDTO.todo
-        task.todoDescription = "No description provided"
-        task.completed = taskDTO.completed
-        task.userId = taskDTO.userId
-        task.createdAt = Date.now
+        newTask.id = task.id
+        newTask.todo = task.todo
+        newTask.todoDescription = nil
+        newTask.completed = task.completed
+        newTask.userId = task.userId
+        newTask.createdAt = Date.now + 7
         
         CoreDataStack.shared.saveContext(for: Models.task.rawValue)
+    }
+    
+    func createTask(_ task: Task) {
+        let c = CoreDataStack.shared.viewContext(for: Models.task.rawValue)
+        let newTask = TaskEntity(context: c)
+        
+        newTask.id = task.id
+        newTask.todo = task.todo
+        newTask.todoDescription = task.description
+        newTask.completed = task.completed
+        newTask.userId = task.userId
+        newTask.createdAt = Date.now + 7
+        
+        CoreDataStack.shared.saveContext(for: Models.task.rawValue)
+    }
+    
+    func getNewTaskId() -> Int64 {
+        let tasks = fetchAllTasks()
+        var newId: Int64 = 1
+        for task in tasks {
+            newId = max(task.id, newId)
+        }
+        return newId + 1
     }
     
     func updateTask(_ task: Task) {

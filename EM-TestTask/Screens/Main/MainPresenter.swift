@@ -28,7 +28,10 @@ final class MainPresenter: MainPresenterProtocol {
         }
         if !tasks.isEmpty {
             let mappedTasks = mapFromCoreData(tasks)
-            view?.showTasks(mappedTasks)
+            let sorted = mappedTasks.sorted { task1, task2 in
+                return task1.createdAt ?? Date.now > task2.createdAt ?? Date.now
+            }
+            view?.showTasks(sorted)
         } else {
             view?.startLoadingAnimation()
             interactor.loadAllTasks(userId) { [weak self] result in
@@ -51,11 +54,11 @@ final class MainPresenter: MainPresenterProtocol {
     }
     
     func createNewTaskPressed() {
-        //
+        router.routeToTaskScreen(nil)
     }
     
     func updateTaskPressed(_ task: Task) {
-        //
+        router.routeToTaskScreen(task)
     }
     
     func shareTaskPressed(_ task: Task) {
@@ -84,7 +87,7 @@ final class MainPresenter: MainPresenterProtocol {
                 description: task.todoDescription,
                 completed: task.completed,
                 userId: task.userId,
-                createdAt: task.createdAt
+                createdAt: task.createdAt ?? Date.now
             )
             mappedTasks.append(mappedTask)
         }
@@ -117,7 +120,7 @@ final class MainPresenter: MainPresenterProtocol {
             break
         case .internalServerError:
             return "Server error, try later"
-        case .unknown(let message):
+        case .unknown(_):
             break
         case .forbidden:
             return "Access is denied for this action, dont do this!"

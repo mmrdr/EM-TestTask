@@ -45,36 +45,6 @@ final class MainInteractor: MainInteractorProtocol {
             }
     }
     
-    func createTask(_ task: Task, completion: @escaping (Result<Task, any Error>) -> Void) {
-        networkService
-            .request(
-                endpoint: Endpoints.add.rawValue,
-                method: .post,
-                queryItems: nil,
-                body: task as Task,
-                headers: nil
-            ) { [weak self] (result: Result<TaskDTO, Error>) in
-                DispatchQueue.main.async {
-                    guard let self = self else { return }
-                    switch result {
-                    case .success(let response):
-                        self.coreData.createTask(response)
-                        let task = Task(
-                            id: response.id,
-                            todo: response.todo,
-                            description: "No description provided",
-                            completed: response.completed,
-                            userId: response.userId,
-                            createdAt: Date.now
-                        )
-                        completion(.success(task))
-                    case .failure(let error):
-                        completion(.failure(error))
-                    }
-                }
-        }
-    }
-    
     func updateTask(_ task: Task) {
         coreData.updateTask(task)
     }
