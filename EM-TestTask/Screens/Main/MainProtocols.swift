@@ -14,6 +14,7 @@ protocol MainPresenterProtocol {
     func updateTaskPressed(_ task: Task)
     func shareTaskPressed(_ task: Task)
     func deleteTaskPressed(_ task: Task)
+    func openTrashHistory()
 }
 
 protocol MainInteractorProtocol {
@@ -32,4 +33,5 @@ protocol MainViewProtocol: AnyObject {
 
 protocol MainRouterProtocol {
     func routeToTaskScreen(_ task: Task?)
+    func routeToTrashHistoryScreen()
 }

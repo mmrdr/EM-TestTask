@@ -77,6 +77,10 @@ final class MainPresenter: MainPresenterProtocol {
         }
     }
     
+    func openTrashHistory() {
+        //
+    }
+    
     private func mapFromCoreData(_ tasks: [TaskEntity]) -> [Task] {
         var mappedTasks: [Task] = []
         for task in tasks {

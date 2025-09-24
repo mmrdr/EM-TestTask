@@ -20,6 +20,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     private let bottomBar = UIToolbar()
     private let taskCountLabel = UILabel()
     private var addItemButton: UIBarButtonItem = UIBarButtonItem()
+    private var trashItemButton: UIBarButtonItem = UIBarButtonItem()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,6 +69,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         configureTasksTableView()
         configureBottomBar()
         configureAddTaskButton()
+        configureTrashItemButton()
         configureTaskCountLabel()
     }
     
@@ -127,6 +129,13 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         addItemButton.tintColor = Colors.checkSecondary
     }
     
+    private func configureTrashItemButton() {
+        trashItemButton = UIBarButtonItem(systemItem: .trash, primaryAction: UIAction { [weak self] _ in
+            self?.openTrashHistory()
+        })
+        trashItemButton.tintColor = .red
+    }
+    
     private func configureTaskCountLabel() {
         taskCountLabel.text = "\(tasks.count) Задач"
         taskCountLabel.font = .systemFont(ofSize: 11, weight: .regular)
@@ -143,6 +152,11 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     
     private func createTask() {
         presenter.createNewTaskPressed()
+    }
+    
+    
+    private func openTrashHistory() {
+        presenter.openTrashHistory()
     }
     
     private func updateTask(_ task: Task) {
