@@ -11,8 +11,11 @@ protocol CoreDataProtocol {
     func fetchTask(_ taskId: Int64) -> TaskEntity?
     func fetchAllTasks() -> [TaskEntity]
     
-    func createTask(_ taskDTO: TaskDTO)
+    func createTask(_ task: TaskDTO)
+    func createTask(_ task: Task)
     func updateTask(_ task: Task)
+    
+    func getNewTaskId() -> Int64
     
     func deleteTask(_ taskId: Int64)
 }

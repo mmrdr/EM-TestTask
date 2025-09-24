@@ -13,4 +13,8 @@ final class MainRouter: MainRouterProtocol {
     init(view: MainViewController) {
         self.view = view
     }
+    
+    func routeToTaskScreen(_ task: Task?) {
+        view?.navigationController?.pushViewController(TaskAssembly.build(task), animated: true)
+    }
 }
