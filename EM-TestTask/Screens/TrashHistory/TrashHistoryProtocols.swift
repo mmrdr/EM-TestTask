@@ -15,7 +15,8 @@ protocol TrashHistoryPresenterProtocol {
 }
 
 protocol TrashHistoryInteractorProtocol {
-    func restoreTask(_ task: Task, completion: @escaping (Result<TaskDTO, Error>) -> Void)
+    func loadDeletedTasks() -> [Task]
+    func restoreTask(_ task: Task)
     func deleteTask(_ task: Task)
 }
 

@@ -10,6 +10,7 @@ import Foundation
 protocol CoreDataProtocol {
     func fetchTask(_ taskId: Int64) -> TaskEntity?
     func fetchAllTasks() -> [TaskEntity]
+    func fetchAllTrashTasks() -> [DeletedTaskEntity]
     
     func createTask(_ task: TaskDTO)
     func createTask(_ task: Task)

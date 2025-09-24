@@ -176,7 +176,7 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         let task = tasks[indexPath.row]
         let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-            let restoreAction = UIAction(title: "Восстановить", image: UIImage(systemName: "pencil"), attributes: .disabled) { [weak self] _ in
+            let restoreAction = UIAction(title: "Восстановить", image: UIImage(systemName: "pencil")) { [weak self] _ in
                 self?.tasks.remove(at: indexPath.row)
                 self?.tasksSections[indexPath.section].items.remove(at: indexPath.row)
                 self?.trashTableView.deleteRows(at: [indexPath], with: .automatic)
@@ -191,6 +191,7 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
                 self?.presenter.restorePressed(task)
             }
             let deleteAction = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+                self?.presenter.deletePressed(task)
                 self?.tasks.remove(at: indexPath.row)
                 self?.tasksSections[indexPath.section].items.remove(at: indexPath.row)
                 self?.trashTableView.deleteRows(at: [indexPath], with: .automatic)

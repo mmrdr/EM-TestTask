@@ -94,9 +94,8 @@ final class MainInteractor: MainInteractorProtocol {
                 queryItems: nil,
                 body: nil as EmptyBody?,
                 headers: nil
-            ) { [weak self] (result: Result<DeletedTask, Error>) in
+            ) { (result: Result<DeletedTask, Error>) in
                 DispatchQueue.main.async {
-                    guard let self = self else { return }
                     switch result {
                     case .success(_):
                         completion(.success(()))
