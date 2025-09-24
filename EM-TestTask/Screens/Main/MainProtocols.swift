@@ -11,6 +11,7 @@ protocol MainPresenterProtocol {
     func viewLoaded()
     func createNewTaskPressed()
     func taskCompletedStatusChanged(_ task: Task)
+    func createTask(_ task: Task)
     func updateTaskPressed(_ task: Task)
     func shareTaskPressed(_ task: Task)
     func deleteTaskPressed(_ task: Task)
@@ -20,8 +21,11 @@ protocol MainPresenterProtocol {
 protocol MainInteractorProtocol {
     func loadAllTasksFromCoreData() -> [TaskEntity]
     func loadAllTasks(_ userId: Int64, completion: @escaping (Result<Tasks, Error>) -> Void)
+    func createTask(_ task: Task, completion: @escaping (Result<TaskDTO, Error>) -> Void)
     func updateTask(_ task: Task)
     func deleteTask(_ task: Task, completion: @escaping (Result<Void, Error>) -> Void)
+    
+    func createTaskInCoreData(_ task: Task)
 }
 
 protocol MainViewProtocol: AnyObject {
@@ -32,6 +36,7 @@ protocol MainViewProtocol: AnyObject {
     func handleStartAnimation(_ taskId: Int64)
     func handleStopAnimation(_ taskId: Int64)
     func handleError(_ taskId: Int64)
+    func updateTaskId(_ task: Task)
 }
 
 protocol MainRouterProtocol {

@@ -91,6 +91,11 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         }
     }
     
+    func updateTaskId(_ task: Task) {
+        if let index = tasks.firstIndex(where: {$0.todo == task.todo && $0.createdAt == $0.createdAt}) {
+            tasks[index] = task
+        }
+    }
     
     private func registerNotifications() {
         NotificationCenter.default.addObserver(self, selector: #selector(handleTasksCreatedEvent), name: .tasksCreatedEvent, object: nil)
@@ -244,6 +249,21 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
         }
         let item = tasks[indexPath.row]
         cell.configure(item)
+        cell.failButtonTapped = {
+            let alertController = UIAlertController(title: "Что делаем с таской?", message: nil, preferredStyle: .alert)
+            let tryAgainAction = UIAlertAction(title: "Сохранить заново", style: .default) { [weak self] _ in
+                self?.presenter.createTask(item)
+            }
+            let delete = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+                self?.tasks.remove(at: indexPath.row)
+                self?.tasksTableView.deleteRows(at: [indexPath], with: .automatic)
+                NotificationCenter.default.post(name: .trashTaskCreatedEvent, object: nil, userInfo: ["task": item])
+                self?.presenter.deleteTaskPressed(item)
+            }
+            alertController.addAction(tryAgainAction)
+            alertController.addAction(delete)
+            self.present(alertController, animated: true)
+        }
         return cell
     }
     

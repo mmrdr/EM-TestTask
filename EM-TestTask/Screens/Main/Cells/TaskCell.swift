@@ -23,6 +23,8 @@ final class TaskCell: UITableViewCell {
         }
     }
     
+    var failButtonTapped: (() -> ())?
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureCell()
@@ -161,6 +163,6 @@ final class TaskCell: UITableViewCell {
     }
     
     @objc private func failButtonPressed() {
-        print("PRESSED")
+        failButtonTapped?()
     }
 }

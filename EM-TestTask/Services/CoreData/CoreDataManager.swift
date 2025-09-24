@@ -81,9 +81,9 @@ final class CoreDataManager: CoreDataProtocol {
         }
         updatedTask.id = task.id
         updatedTask.todo = task.todo
-        updatedTask.todoDescription = updatedTask.todoDescription
+        updatedTask.todoDescription = task.description
         updatedTask.completed = task.completed
-        
+        debugPrint("updated: \(updatedTask.id)\n\(updatedTask.todo)/n\(updatedTask.todoDescription)")
         CoreDataStack.shared.saveContext(for: Models.task.rawValue)
     }
     
@@ -95,6 +95,19 @@ final class CoreDataManager: CoreDataProtocol {
         }
         c.delete(task)
         CoreDataStack.shared.saveContext(for: Models.task.rawValue)
+    }
+    
+    func deleteAll() {
+        let c = CoreDataStack.shared.viewContext(for: Models.task.rawValue)
+        let r: NSFetchRequest<TaskEntity> = TaskEntity.fetchRequest()
+        do {
+            let tasks = try c.fetch(r)
+            for task in tasks {
+                c.delete(task)
+            }
+        } catch let error as NSError {
+            print("Could not delete. \(error), \(error.userInfo)")
+        }
     }
     
     func fetchTrashTask(_ taskId: Int64) -> DeletedTaskEntity? {

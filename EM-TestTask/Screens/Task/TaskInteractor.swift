@@ -28,7 +28,6 @@ final class TaskInteractor: TaskInteractorProtocol {
             userId: userId,
             createdAt: Date.now + 7
         )
-        coreData.createTask(newTask)
         NotificationCenter.default.post(name: .tasksCreatedEvent, object: nil, userInfo: ["task": newTask])
         
         sendRequest(task, newTaskID)
@@ -51,7 +50,7 @@ final class TaskInteractor: TaskInteractorProtocol {
         NotificationCenter.default.post(name: .startAnimationEvent, object: nil, userInfo: ["task": taskId])
         networkService
             .request(
-                endpoint: Endpoints.add.rawValue + "fawf",
+                endpoint: Endpoints.add.rawValue,
                 method: .post,
                 queryItems: nil,
                 body: taskCreateRequest as TaskCreateRequest,
@@ -77,7 +76,7 @@ final class TaskInteractor: TaskInteractorProtocol {
                         )
                         NotificationCenter.default
                             .post(
-                                name: .taskUpdatedEvent,
+                                name: .taskIdUpdatedEvent,
                                 object: nil,
                                 userInfo: ["task": task]
                             )
