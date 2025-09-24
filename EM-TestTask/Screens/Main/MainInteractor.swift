@@ -11,9 +11,15 @@ final class MainInteractor: MainInteractorProtocol {
     var coreData: CoreDataProtocol
     var networkService: NetworkServiceProtocol
     
+    private let pageSize: Int = 30
+    private var skip: Int = 0
+    private var isLoading = false
+    private var end = false
+    
     init(coreData: CoreDataProtocol, networkService: NetworkServiceProtocol) {
         self.coreData = coreData
         self.networkService = networkService
+        skip = coreData.getStorageCount()
     }
     
     func loadAllTasksFromCoreData() -> [TaskEntity] {
@@ -21,10 +27,10 @@ final class MainInteractor: MainInteractorProtocol {
         return tasks
     }
     
-    func loadAllTasks(_ userId: Int64, completion: @escaping (Result<Tasks, any Error>) -> Void) {
+    func loadFirstPage(completion: @escaping (Result<Tasks, any Error>) -> Void) {
         networkService
             .request(
-                endpoint: Endpoints.getByUser.rawValue + "/\(userId)",
+                endpoint: "",
                 method: .get,
                 queryItems: nil,
                 body: nil as EmptyBody?,
@@ -34,15 +40,57 @@ final class MainInteractor: MainInteractorProtocol {
                     guard let self = self else { return }
                     switch result {
                     case .success(let response):
+                
                         for task in response.todos {
                             self.coreData.createTask(task)
                         }
+                        
+                        let received = response.todos.count
+                        self.skip += received
+                        if self.skip >= response.total { self.end = true }
+                        
                         completion(.success(response))
                     case .failure(let error):
                         completion(.failure(error))
                     }
                 }
             }
+    }
+    
+    func loadNextPage(completion: @escaping (Result<Tasks, any Error>) -> Void) {
+        if end { return }
+        if isLoading { return }
+        isLoading = true
+        let query = [
+            URLQueryItem(name: "limit", value: String(pageSize)),
+            URLQueryItem(name: "skip", value: String(skip))
+        ]
+        networkService
+            .request(
+                endpoint: "",
+                method: .get,
+                queryItems: query,
+                body: nil as EmptyBody?,
+                headers: nil,
+            ) { [weak self] (result: Result<Tasks, Error>) in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    self.isLoading = false
+                    switch result {
+                    case .success(let response):
+                        for task in response.todos {
+                            self.coreData.createTask(task)
+                        }
+                        let received = response.todos.count
+                        self.skip += received
+                        if self.skip >= response.total { self.end = true }
+                        completion(.success(response))
+                    case .failure(let error):
+                        completion(.failure(error))
+                    }
+                }
+            }
+
     }
     
     func createTask(_ task: Task, completion: @escaping (Result<TaskDTO, any Error>) -> Void) {

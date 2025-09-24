@@ -60,6 +60,26 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         tasksTableView.reloadData()
     }
     
+    func appendTasks(_ newTasks: [Task]) {
+        guard !newTasks.isEmpty else { return }
+
+        let startIndex = tasks.count
+        let endIndex = startIndex + newTasks.count - 1
+        let indexPaths = (startIndex...endIndex).map { IndexPath(row: $0, section: 0) }
+
+        self.tasks.append(contentsOf: newTasks)
+
+        if #available(iOS 11.0, *) {
+            tasksTableView.performBatchUpdates({
+                tasksTableView.insertRows(at: indexPaths, with: .automatic)
+            }, completion: nil)
+        } else {
+            tasksTableView.beginUpdates()
+            tasksTableView.insertRows(at: indexPaths, with: .automatic)
+            tasksTableView.endUpdates()
+        }
+    }
+    
     func startLoadingAnimation() {
         loader.start()
     }
@@ -305,6 +325,13 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
             return UIMenu(title: "", children: [editAction, shareAction, deleteAction])
         }
         return configuration
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        let threshold = max(tasks.count - 5, 0)
+        if indexPath.row >= threshold {
+            presenter.reachedEnd()
+        }
     }
 }
 
