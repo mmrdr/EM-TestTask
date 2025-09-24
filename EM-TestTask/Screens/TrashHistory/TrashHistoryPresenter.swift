@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class TrashHistoryPresenter: TrashHistoryPresenterProtocol {
+final class TrashHistoryPresenter: TrashHistoryPresenterProtocol  {
     weak var view: TrashHistoryViewProtocol?
     var interactor: TrashHistoryInteractorProtocol
     var router: TrashHistoryRouterProtocol

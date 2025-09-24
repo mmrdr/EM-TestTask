@@ -38,6 +38,7 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
         super.viewDidLoad()
         view.backgroundColor = Colors.surfacePrimary
         presenter.viewLoaded()
+        register()
         configureUI()
     }
     
@@ -45,6 +46,10 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
         self.tasks = tasks
         self.tasksSections = buildSections(from: self.tasks)
         trashTableView.reloadData()
+    }
+    
+    private func register() {
+        NotificationCenter.default.addObserver(self, selector: #selector(handleTrashTaskCreatedEvent), name: .trashTaskCreatedEvent, object: nil)
     }
     
     private func configureUI() {
@@ -121,6 +126,16 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
         }
             .sorted { $0.items.first?.createdAt ?? .distantPast > $1.items.first?.createdAt ?? .distantPast }
         return sections
+    }
+    
+    @objc func handleTrashTaskCreatedEvent(_ notification: Notification) {
+        if let userInfo = notification.userInfo,
+           let task = userInfo["task"] as? Task {
+            debugPrint("Received deleted task: \(task.id)\n\(task.todo)/\(String(describing: task.description))")
+            self.tasks.append(task)
+            self.tasksSections = buildSections(from: self.tasks)
+            trashTableView.reloadData()
+        }
     }
 }
 

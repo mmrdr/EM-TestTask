@@ -66,7 +66,7 @@ final class MainPresenter: MainPresenterProtocol {
     }
     
     func deleteTaskPressed(_ task: Task) {
-        interactor.deleteTask(task.id) { [weak self] result in
+        interactor.deleteTask(task) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success(_): break
@@ -78,7 +78,7 @@ final class MainPresenter: MainPresenterProtocol {
     }
     
     func openTrashHistory() {
-        //
+        router.routeToTrashHistoryScreen()
     }
     
     private func mapFromCoreData(_ tasks: [TaskEntity]) -> [Task] {

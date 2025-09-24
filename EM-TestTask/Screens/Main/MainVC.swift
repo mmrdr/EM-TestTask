@@ -29,7 +29,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         configureUI()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         configureTitle()
     }
@@ -143,10 +143,12 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         let centerItem = UIBarButtonItem(customView: taskCountLabel)
         
         bottomBar.setItems([
+            trashItemButton,
             .flexibleSpace(),
             centerItem,
             .flexibleSpace(),
-            addItemButton
+            addItemButton,
+            
         ], animated: false)
     }
     
@@ -229,6 +231,7 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
             let deleteAction = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
                 self?.tasks.remove(at: indexPath.row)
                 self?.tasksTableView.deleteRows(at: [indexPath], with: .automatic)
+                NotificationCenter.default.post(name: .trashTaskCreatedEvent, object: nil, userInfo: ["task": task])
                 self?.presenter.deleteTaskPressed(task)
             }
             

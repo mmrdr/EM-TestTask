@@ -4,7 +4,7 @@
         <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="todo" attributeType="String"/>
-        <attribute name="todoDescription" attributeType="String"/>
+        <attribute name="todoDescription" optional="YES" attributeType="String"/>
         <attribute name="userId" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
 </model>

@@ -21,7 +21,7 @@ protocol MainInteractorProtocol {
     func loadAllTasksFromCoreData() -> [TaskEntity]
     func loadAllTasks(_ userId: Int64, completion: @escaping (Result<Tasks, Error>) -> Void)
     func updateTask(_ task: Task)
-    func deleteTask(_ taskId: Int64, completion: @escaping (Result<Void, Error>) -> Void)
+    func deleteTask(_ task: Task, completion: @escaping (Result<Void, Error>) -> Void)
 }
 
 protocol MainViewProtocol: AnyObject {

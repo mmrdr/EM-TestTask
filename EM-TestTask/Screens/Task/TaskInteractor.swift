@@ -39,8 +39,3 @@ final class TaskInteractor: TaskInteractorProtocol {
         NotificationCenter.default.post(name: .taskUpdatedEvent, object: nil, userInfo: ["task": task])
     }
 }
-
-extension Notification.Name {
-    static let tasksCreatedEvent = Notification.Name("TasksCreatedEvent")
-    static let taskUpdatedEvent = Notification.Name("TaskUpdatedEvent")
-}

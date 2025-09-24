@@ -49,10 +49,10 @@ final class MainInteractor: MainInteractorProtocol {
         coreData.updateTask(task)
     }
     
-    func deleteTask(_ taskId: Int64, completion: @escaping (Result<Void, any Error>) -> Void) {
+    func deleteTask(_ task: Task, completion: @escaping (Result<Void, any Error>) -> Void) {
         networkService
             .request(
-                endpoint: "/\(taskId)",
+                endpoint: "/\(task.id)",
                 method: .delete,
                 queryItems: nil,
                 body: nil as EmptyBody?,
@@ -62,7 +62,8 @@ final class MainInteractor: MainInteractorProtocol {
                     guard let self = self else { return }
                     switch result {
                     case .success(_):
-                        self.coreData.deleteTask(taskId)
+                        self.coreData.deleteTask(task.id)
+                        self.coreData.createTrashTask(task)
                         completion(.success(()))
                     case .failure(let error):
                         completion(.failure(error))
