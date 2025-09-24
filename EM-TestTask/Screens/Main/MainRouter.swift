@@ -17,4 +17,8 @@ final class MainRouter: MainRouterProtocol {
     func routeToTaskScreen(_ task: Task?) {
         view?.navigationController?.pushViewController(TaskAssembly.build(task), animated: true)
     }
+    
+    func routeToTrashHistoryScreen() {
+        view?.navigationController?.pushViewController(TrashHistoryAssembly.build(), animated: true)
+    }
 }

@@ -9,9 +9,10 @@ import Foundation
 import CoreData
 
 final class CoreDataManager: CoreDataProtocol {
-    
+        
     enum Models: String {
         case task = "TaskModel"
+        case trash = "DeletedTaskModel"
     }
     
     // MARK: - CRUD
@@ -45,7 +46,7 @@ final class CoreDataManager: CoreDataProtocol {
         newTask.todoDescription = nil
         newTask.completed = task.completed
         newTask.userId = task.userId
-        newTask.createdAt = Date.now + 7
+        newTask.createdAt = Date.now
         
         CoreDataStack.shared.saveContext(for: Models.task.rawValue)
     }
@@ -59,7 +60,7 @@ final class CoreDataManager: CoreDataProtocol {
         newTask.todoDescription = task.description
         newTask.completed = task.completed
         newTask.userId = task.userId
-        newTask.createdAt = Date.now + 7
+        newTask.createdAt = Date.now
         
         CoreDataStack.shared.saveContext(for: Models.task.rawValue)
     }
@@ -78,11 +79,11 @@ final class CoreDataManager: CoreDataProtocol {
             debugPrint("Task with id: \(task.id) not found in storage")
             return
         }
-        
+        updatedTask.id = task.id
         updatedTask.todo = task.todo
-        updatedTask.todoDescription = updatedTask.todoDescription
+        updatedTask.todoDescription = task.description
         updatedTask.completed = task.completed
-        
+        debugPrint("updated: \(updatedTask.id)\n\(updatedTask.todo)/n\(updatedTask.todoDescription)")
         CoreDataStack.shared.saveContext(for: Models.task.rawValue)
     }
     
@@ -94,5 +95,49 @@ final class CoreDataManager: CoreDataProtocol {
         }
         c.delete(task)
         CoreDataStack.shared.saveContext(for: Models.task.rawValue)
+    }
+    
+    func deleteAll() {
+        let c = CoreDataStack.shared.viewContext(for: Models.task.rawValue)
+        let r: NSFetchRequest<TaskEntity> = TaskEntity.fetchRequest()
+        do {
+            let tasks = try c.fetch(r)
+            for task in tasks {
+                c.delete(task)
+            }
+        } catch let error as NSError {
+            print("Could not delete. \(error), \(error.userInfo)")
+        }
+    }
+    
+    func fetchTrashTask(_ taskId: Int64) -> DeletedTaskEntity? {
+        let c = CoreDataStack.shared.viewContext(for: Models.trash.rawValue)
+        let r: NSFetchRequest<DeletedTaskEntity> = DeletedTaskEntity.fetchRequest()
+        r.predicate = NSPredicate(format: "id == %@", NSNumber(value: taskId))
+        r.fetchLimit = 1
+        return try? c.fetch(r).first
+    }
+    
+    func createTrashTask(_ task: Task) {
+        let c = CoreDataStack.shared.viewContext(for: Models.trash.rawValue)
+        let newTask = DeletedTaskEntity(context: c)
+        
+        newTask.id = task.id
+        newTask.todo = task.todo
+        newTask.todoDescription = task.description
+        newTask.userId = task.userId
+        newTask.createdAt = Date.now
+        
+        CoreDataStack.shared.saveContext(for: Models.trash.rawValue)
+    }
+    
+    func deleteTrashTask(_ taskId: Int64) {
+        let c = CoreDataStack.shared.viewContext(for: Models.trash.rawValue)
+        guard let task = fetchTrashTask(taskId) else {
+            debugPrint("Trash task with id: \(taskId) not found in storage")
+            return
+        }
+        c.delete(task)
+        CoreDataStack.shared.saveContext(for: Models.trash.rawValue)
     }
 }

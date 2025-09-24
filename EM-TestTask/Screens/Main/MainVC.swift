@@ -20,15 +20,27 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     private let bottomBar = UIToolbar()
     private let taskCountLabel = UILabel()
     private var addItemButton: UIBarButtonItem = UIBarButtonItem()
+    private var trashItemButton: UIBarButtonItem = UIBarButtonItem()
+    private let loader = LoadingRingsView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         registerNotifications()
         presenter.viewLoaded()
+        loader.translatesAutoresizingMaskIntoConstraints = false
+
+        view.addSubview(loader)
+        NSLayoutConstraint.activate([
+            loader.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loader.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            loader.widthAnchor.constraint(equalToConstant: 40),
+            loader.heightAnchor.constraint(equalTo: loader.widthAnchor)
+        ])
+        
         configureUI()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         configureTitle()
     }
@@ -48,11 +60,41 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     }
     
     func startLoadingAnimation() {
-        //
+        loader.start()
     }
     
     func stopLoadingAnimation() {
-        //
+        loader.stop()
+    }
+    
+    func handleStartAnimation(_ taskId: Int64) {
+        if let index = tasks.firstIndex(where: {$0.id == taskId}) {
+            if let cell = tasksTableView.cellForRow(at: IndexPath(row: index, section: 0)) as? TaskCell {
+                cell.startAnimation()
+            }
+        }
+    }
+    
+    func handleStopAnimation(_ taskId: Int64) {
+        if let index = tasks.firstIndex(where: {$0.id == taskId}) {
+            if let cell = tasksTableView.cellForRow(at: IndexPath(row: index, section: 0)) as? TaskCell {
+                cell.stopAnimation()
+            }
+        }
+    }
+    
+    func handleError(_ taskId: Int64) {
+        if let index = tasks.firstIndex(where: {$0.id == taskId}) {
+            if let cell = tasksTableView.cellForRow(at: IndexPath(row: index, section: 0)) as? TaskCell {
+                cell.showError()
+            }
+        }
+    }
+    
+    func updateTaskId(_ task: Task) {
+        if let index = tasks.firstIndex(where: {$0.todo == task.todo && $0.createdAt == $0.createdAt}) {
+            tasks[index] = task
+        }
     }
     
     private func registerNotifications() {
@@ -68,6 +110,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         configureTasksTableView()
         configureBottomBar()
         configureAddTaskButton()
+        configureTrashItemButton()
         configureTaskCountLabel()
     }
     
@@ -101,6 +144,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     
     private func configureTasksTableView() {
         view.addSubview(tasksTableView)
+        view.bringSubviewToFront(loader)
         tasksTableView.delegate = self
         tasksTableView.dataSource = self
         tasksTableView.register(TaskCell.self, forCellReuseIdentifier: "TaskCell")
@@ -127,6 +171,13 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         addItemButton.tintColor = Colors.checkSecondary
     }
     
+    private func configureTrashItemButton() {
+        trashItemButton = UIBarButtonItem(systemItem: .trash, primaryAction: UIAction { [weak self] _ in
+            self?.openTrashHistory()
+        })
+        trashItemButton.tintColor = .red
+    }
+    
     private func configureTaskCountLabel() {
         taskCountLabel.text = "\(tasks.count) Задач"
         taskCountLabel.font = .systemFont(ofSize: 11, weight: .regular)
@@ -134,15 +185,22 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         let centerItem = UIBarButtonItem(customView: taskCountLabel)
         
         bottomBar.setItems([
+            trashItemButton,
             .flexibleSpace(),
             centerItem,
             .flexibleSpace(),
-            addItemButton
+            addItemButton,
+            
         ], animated: false)
     }
     
     private func createTask() {
         presenter.createNewTaskPressed()
+    }
+    
+    
+    private func openTrashHistory() {
+        presenter.openTrashHistory()
     }
     
     private func updateTask(_ task: Task) {
@@ -191,18 +249,40 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
         }
         let item = tasks[indexPath.row]
         cell.configure(item)
+        cell.failButtonTapped = {
+            let alertController = UIAlertController(title: "Что делаем с таской?", message: nil, preferredStyle: .alert)
+            let tryAgainAction = UIAlertAction(title: "Сохранить заново", style: .default) { [weak self] _ in
+                self?.presenter.createTask(item)
+            }
+            let delete = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+                self?.tasks.remove(at: indexPath.row)
+                self?.tasksTableView.deleteRows(at: [indexPath], with: .automatic)
+                NotificationCenter.default.post(name: .trashTaskCreatedEvent, object: nil, userInfo: ["task": item])
+                self?.presenter.deleteTaskPressed(item)
+            }
+            alertController.addAction(tryAgainAction)
+            alertController.addAction(delete)
+            self.present(alertController, animated: true)
+        }
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tasks[indexPath.row].completed.toggle()
-        presenter.taskCompletedStatusChanged(tasks[indexPath.row])
-        tableView.reloadRows(at: [indexPath], with: .automatic)
-        tableView.deselectRow(at: indexPath, animated: true)
+        if let cell = tasksTableView.cellForRow(at: indexPath) as? TaskCell {
+            if !cell.isActive {
+                cell.selectionStyle = .none
+            } else {
+                tasks[indexPath.row].completed.toggle()
+                presenter.taskCompletedStatusChanged(tasks[indexPath.row])
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            }
+        }
     }
     
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         let task = tasks[indexPath.row]
+        guard let cell = tasksTableView.cellForRow(at: indexPath) as? TaskCell else { return nil }
+        if !cell.isActive { return nil }
         let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
             let editAction = UIAction(title: "Редактировать", image: UIImage(systemName: "pencil")) { [weak self] _ in
                 self?.presenter.updateTaskPressed(task)
@@ -215,6 +295,7 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
             let deleteAction = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
                 self?.tasks.remove(at: indexPath.row)
                 self?.tasksTableView.deleteRows(at: [indexPath], with: .automatic)
+                NotificationCenter.default.post(name: .trashTaskCreatedEvent, object: nil, userInfo: ["task": task])
                 self?.presenter.deleteTaskPressed(task)
             }
             
