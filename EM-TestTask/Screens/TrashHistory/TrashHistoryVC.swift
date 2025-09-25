@@ -175,6 +175,7 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "TrashCell", for: indexPath) as? TrashCell else {
             return UITableViewCell()
         }
+        
         guard indexPath.section < tasksSections.count else {
             return UITableViewCell()
         }
