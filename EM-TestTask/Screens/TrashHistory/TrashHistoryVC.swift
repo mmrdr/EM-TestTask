@@ -20,7 +20,6 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
     private let trashTableView: UITableView = UITableView(frame: .zero, style: .insetGrouped)
     private let bottomBar = UIToolbar()
     private let taskCountLabel = UILabel()
-    private let searchController: UISearchController = UISearchController(searchResultsController: nil)
     
     private lazy var monthFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -76,7 +75,6 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
     private func configureUI() {
         configureTitle()
         configureTrashTableView()
-        configureSearchController()
         configureBottomBar()
         configureTaskCountLabel()
     }
@@ -95,19 +93,6 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
         trashTableView.register(TrashCell.self, forCellReuseIdentifier: "TrashCell")
         trashTableView.register(SectionHeaderView.self, forHeaderFooterViewReuseIdentifier: "SectionHeaderView")
         trashTableView.frame = view.bounds
-    }
-    
-    private func configureSearchController() {
-        searchController.searchResultsUpdater = self
-        searchController.obscuresBackgroundDuringPresentation = false
-        navigationItem.searchController = searchController
-        searchController.searchBar.autocapitalizationType = .none
-        searchController.searchBar.autocorrectionType = .no
-        searchController.searchBar.searchTextField.textColor = Colors.textPrimary
-        definesPresentationContext = true
-        navigationItem.hidesSearchBarWhenScrolling = false
-        
-        filteredTasks = tasks
     }
     
     private func configureBottomBar() {
@@ -170,19 +155,16 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return searchController.isActive ? filteredTasks.count : tasks.count
+        guard section < tasksSections.count else { return 0 }
+        return tasksSections[section].items.count
     }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         guard let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: "SectionHeaderView") as? SectionHeaderView else {
             return UIView()
         }
-        if !searchController.isActive {
-            header.label.text = tasksSections[section].header
-            return header
-        } else {
-            return nil
-        }
+        header.label.text = tasksSections[section].header
+        return header
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -193,7 +175,14 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "TrashCell", for: indexPath) as? TrashCell else {
             return UITableViewCell()
         }
-        let item = tasksSections[indexPath.section].items[indexPath.row]
+        guard indexPath.section < tasksSections.count else {
+            return UITableViewCell()
+        }
+        let section = tasksSections[indexPath.section]
+        guard indexPath.row < section.items.count else {
+            return UITableViewCell()
+        }
+        let item = section.items[indexPath.row]
         cell.configure(item)
         return cell
     }
@@ -245,24 +234,5 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
             return UIMenu(title: "", children: [restoreAction, deleteAction])
         })
         return configuration
-    }
-}
-
-extension TrashHistoryViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        let query = (searchController.searchBar.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard !query.isEmpty else {
-            filteredTasks = tasks
-            trashTableView.reloadData()
-            return
-        }
-
-        let lower = query.lowercased()
-        filteredTasks = tasks.filter { task in
-            task.todo.lowercased().contains(lower)
-        }
-
-        trashTableView.reloadData()
     }
 }
