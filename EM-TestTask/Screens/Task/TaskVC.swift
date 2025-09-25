@@ -23,6 +23,7 @@ final class TaskViewController: UIViewController {
         view.addGestureRecognizer(tapGesture)
         presenter.viewLoaded()
         configureUI()
+        overrideUserInterfaceStyle = .dark
     }
     
     override func viewDidAppear(_ animated: Bool) {

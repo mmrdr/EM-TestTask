@@ -145,7 +145,7 @@ final class MainInteractor: MainInteractorProtocol {
                 queryItems: nil,
                 body: request as TaskChangeRequest,
                 headers: nil
-            ) { [weak self] (result: Result<DeletedTask, Error>) in
+            ) { [weak self] (result: Result<TaskDTO, Error>) in
                 DispatchQueue.main.async {
                     guard let self = self else { return }
                     switch result {

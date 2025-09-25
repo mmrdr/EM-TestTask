@@ -103,7 +103,7 @@ final class MainInteractorTests: XCTestCase {
 
     func testUpdateTaskSuccess() throws {
         let task = Task(id: 4, todo: "X4", description: "X4", completed: false, userId: 1, createdAt: Date())
-        networkService.enqueueResult(Result<DeletedTask, Error>.success(DeletedTask(id: 4, todo: "X4", completed: false, userId: 4, isDeleted: true, deletedOn: Date())))
+        networkService.enqueueResult(Result<TaskDTO, Error>.success(TaskDTO(id: 4, todo: "X4", completed: false, userId: 1)))
 
         let expectation = expectation(description: "UpdateTaskSuccess")
         interactor.updateTask(task)
