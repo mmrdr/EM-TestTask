@@ -10,6 +10,15 @@ import Foundation
 final class NetworkService: NetworkServiceProtocol {
     private let baseURL: String = "https://dummyjson.com/todos"
     
+    private lazy var session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.waitsForConnectivity = true
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+        return URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+    }()
+    
+    
     func request<T: Decodable, K: Codable>(
         endpoint: String,
         method: HTTPMethod,
@@ -30,7 +39,7 @@ final class NetworkService: NetworkServiceProtocol {
             return
         }
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        session.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(error))
                 return
@@ -64,7 +73,7 @@ final class NetworkService: NetworkServiceProtocol {
             do {
                 let decoder = JSONDecoder()
                 let iso = ISO8601DateFormatter()
-                iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds] // важно для .649
+                iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
                 decoder.dateDecodingStrategy = .custom { d in
                     let c = try d.singleValueContainer()
                     let s = try c.decode(String.self)
