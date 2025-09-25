@@ -11,7 +11,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     var presenter: MainPresenterProtocol!
     var tasks: [Task] = [] {
         didSet {
-            taskCountLabel.text = "\(tasks.count) Задач"
+            taskCountLabel.text = "\(tasks.count) \(Formatter.format(tasks.count))"
         }
     }
     var filteredTasks: [Task] = []
@@ -205,7 +205,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
     }
     
     private func configureTaskCountLabel() {
-        taskCountLabel.text = "\(tasks.count) Задач"
+        taskCountLabel.text = "\(tasks.count) \(Formatter.format(tasks.count))"
         taskCountLabel.font = .systemFont(ofSize: 11, weight: .regular)
         taskCountLabel.textColor = .secondaryLabel
         let centerItem = UIBarButtonItem(customView: taskCountLabel)
@@ -365,5 +365,14 @@ extension MainViewController: UISearchResultsUpdating {
         }
 
         tasksTableView.reloadData()
+    }
+}
+
+class Formatter {
+    static func format(_ n: Int) -> String {
+        if n % 10 == 0, n % 10 == 5, n % 10 == 6, n % 10 == 7, n % 10 == 8, n % 10 == 9 { return "Задач" }
+        else if n % 10 == 1 { return "Задача" }
+        else if n % 10 == 2, n % 10 == 3, n % 4 == 0 { return "Задачи" }
+        else { return "Задач" }
     }
 }

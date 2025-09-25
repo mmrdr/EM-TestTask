@@ -11,7 +11,7 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
     var presenter: TrashHistoryPresenterProtocol!
     var tasks: [Task] = [] {
         didSet {
-            taskCountLabel.text = "\(tasks.count) Задач"
+            taskCountLabel.text = "\(tasks.count) \(Formatter.format(tasks.count))"
         }
     }
     var filteredTasks: [Task] = []
@@ -120,7 +120,7 @@ final class TrashHistoryViewController: UIViewController, TrashHistoryViewProtoc
     }
     
     private func configureTaskCountLabel() {
-        taskCountLabel.text = "\(tasks.count) Задач"
+        taskCountLabel.text = "\(tasks.count) \(Formatter.format(tasks.count))"
         taskCountLabel.font = .systemFont(ofSize: 11, weight: .regular)
         taskCountLabel.textColor = .secondaryLabel
         let centerItem = UIBarButtonItem(customView: taskCountLabel)
@@ -205,7 +205,7 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
     
     
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
-        let task = tasks[indexPath.row]
+        let task = tasksSections[indexPath.section].items[indexPath.row]
         let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: {
             return TaskAssembly.build(task)
         }, actionProvider: { _ in
