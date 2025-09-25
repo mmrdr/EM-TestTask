@@ -207,7 +207,12 @@ extension TrashHistoryViewController: UITableViewDelegate, UITableViewDataSource
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         let task = tasksSections[indexPath.section].items[indexPath.row]
         let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: {
-            return TaskAssembly.build(task)
+            
+            let vc = TaskAssembly.build(task)
+            vc.view.backgroundColor = Colors.surfacePrimary
+            vc.overrideUserInterfaceStyle = .dark
+            return vc
+            
         }, actionProvider: { _ in
             let restoreAction = UIAction(title: "Восстановить", image: UIImage(systemName: "pencil")) { [weak self] _ in
                 self?.tasks.remove(at: indexPath.row)

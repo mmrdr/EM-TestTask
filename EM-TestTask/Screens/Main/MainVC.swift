@@ -40,6 +40,7 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         ])
         
         configureUI()
+        overrideUserInterfaceStyle = .dark
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -311,7 +312,10 @@ extension MainViewController: UITableViewDelegate, UITableViewDataSource {
         if !cell.isActive { return nil }
         let configuration = UIContextMenuConfiguration(identifier: indexPath as NSIndexPath,
                                                        previewProvider: {
-            return TaskAssembly.build(task)
+            let vc = TaskAssembly.build(task)
+            vc.view.backgroundColor = Colors.surfacePrimary
+            vc.overrideUserInterfaceStyle = .dark
+            return vc
         }, actionProvider: { _ in
             let editAction = UIAction(title: "Редактировать", image: UIImage(systemName: "pencil")) { [weak self] _ in
                 self?.presenter.updateTaskPressed(task)
