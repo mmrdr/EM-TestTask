@@ -5,7 +5,7 @@
 //  Created by Кирилл Исаев on 23.09.2025.
 //
 
-import Foundation
+import UIKit
 
 protocol MainPresenterProtocol {
     func viewLoaded()
@@ -38,6 +38,7 @@ protocol MainInteractorProtocol {
 protocol MainViewProtocol: AnyObject {
     func showError(_ error: String)
     func showTasks(_ tasks: [Task])
+    func showShareMenu(_ activityViewController: UIActivityViewController)
     func startLoadingAnimation()
     func stopLoadingAnimation()
     func handleStartAnimation(_ taskId: Int64)
