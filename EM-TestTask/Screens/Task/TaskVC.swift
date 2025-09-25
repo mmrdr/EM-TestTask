@@ -17,6 +17,7 @@ final class TaskViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = Colors.surfacePrimary
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationItem.largeTitleDisplayMode = .never
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))

@@ -59,8 +59,6 @@ final class TaskCell: UITableViewCell {
 
         let hasError = failedIDs.contains(task.id)
         failButton.isHidden = !hasError
-        loader.stop()
-        loader.isHidden = true
 
         updateCheckbox(task.completed, animated)
         accessoryType = .none
