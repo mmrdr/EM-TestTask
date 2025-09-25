@@ -4,7 +4,15 @@
 Созданы анимации для состояния загрузки данных с сервера. 
 
 **Архитектура** 
-* В приложении используется архитектура **VIPER** 
+
+<img width="753" height="371" alt="image" src="https://github.com/user-attachments/assets/1f719ab6-07fc-4565-9729-eebfb3128d32" />
+
+**DataFlow**
+
+<img width="806" height="407" alt="image" src="https://github.com/user-attachments/assets/77c694fc-5c7c-4242-a25e-af233841c106" />
+
+* В приложении используется архитектура **VIPER**
+* Для реализации **DI** создана сущность - Assembly
 * Для Interactor добавлены 2 новые зависимости - **CoreData** и **NetworkService** 
 * Используется **NotificationCenter** для реализации паттерна наблюдатель, для передачи данных между независимыми модулями.
 * Приложение представлено 3 независимыми модулями: **MainScreen, TaskScreen, TrashHistorySrceen**.
