@@ -129,7 +129,7 @@ extension TaskViewController: UITextFieldDelegate {
         guard let ran = Range(range, in: cur) else { return false }
         let updated = cur.replacingCharacters(in: ran, with: string)
         textField.adjustsFontSizeToFitWidth = !updated.isEmpty && updated.count > 10
-        return updated.count <= 32
+        return updated.count <= 64
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
