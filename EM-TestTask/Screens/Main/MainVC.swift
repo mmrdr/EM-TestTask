@@ -122,6 +122,10 @@ final class MainViewController: UIViewController, MainViewProtocol  {
         }
     }
     
+    func showShareMenu(_ activityViewController: UIActivityViewController) {
+        self.present(activityViewController, animated: true)
+    }
+    
     private func registerNotifications() {
         NotificationCenter.default.addObserver(self, selector: #selector(handleTasksCreatedEvent), name: .tasksCreatedEvent, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleTaskUpdatedEvent), name: .taskUpdatedEvent, object: nil)

@@ -91,7 +91,30 @@ final class MainPresenter: MainPresenterProtocol {
     }
     
     func shareTaskPressed(_ task: Task) {
-        //
+        let titleItem = task.todo
+        let descriptionItem = task.description
+        let completedItem = task.completed
+        let createdAtItem = task.createdAt
+        let activityViewController = UIActivityViewController(
+            activityItems: [titleItem, descriptionItem ?? "", completedItem, createdAtItem ?? Date()], applicationActivities: nil)
+
+        activityViewController.activityItemsConfiguration = [
+            UIActivity.ActivityType.message
+        ] as? UIActivityItemsConfigurationReading
+        
+        activityViewController.excludedActivityTypes = [
+            UIActivity.ActivityType.postToWeibo,
+            UIActivity.ActivityType.print,
+            UIActivity.ActivityType.assignToContact,
+            UIActivity.ActivityType.saveToCameraRoll,
+            UIActivity.ActivityType.addToReadingList,
+            UIActivity.ActivityType.postToFlickr,
+            UIActivity.ActivityType.postToVimeo,
+            UIActivity.ActivityType.postToTencentWeibo,
+            UIActivity.ActivityType.postToFacebook
+        ]
+        activityViewController.isModalInPresentation = true
+        view?.showShareMenu(activityViewController)
     }
     
     func deleteTaskPressed(_ task: Task) {
