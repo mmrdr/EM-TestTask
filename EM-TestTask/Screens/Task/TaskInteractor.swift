@@ -50,7 +50,7 @@ final class TaskInteractor: TaskInteractorProtocol {
         NotificationCenter.default.post(name: .startAnimationEvent, object: nil, userInfo: ["task": taskId])
         networkService
             .request(
-                endpoint: Endpoints.add.rawValue + "fafwa",
+                endpoint: Endpoints.add.rawValue,
                 method: .post,
                 queryItems: nil,
                 body: taskCreateRequest as TaskCreateRequest,
