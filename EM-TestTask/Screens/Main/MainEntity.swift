@@ -16,7 +16,7 @@ struct Task: Codable {
     let createdAt: Date?
 }
 
-struct TaskDTO: Codable {
+struct TaskDTO: Codable, Equatable {
     let id: Int64
     let todo: String
     let completed: Bool
