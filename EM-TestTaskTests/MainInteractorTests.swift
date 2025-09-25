@@ -8,7 +8,7 @@
 import XCTest
 
 @testable import EM_TestTask
-final class EM_TestTaskTests: XCTestCase {
+final class MainInteractorTests: XCTestCase {
     
     var coreData: CoreDataMock!
     var networkService: NetworkServiceMock!
